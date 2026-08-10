@@ -1,0 +1,325 @@
+{
+  "delays": {
+    "home": 0.8,
+    "key": 0.15,
+    "enter": 1.2,
+    "click": 0.8,
+    "passo_menu": 1.0,
+    "abrir_janela": 2.0,
+    "entre_titulos": 1.5
+  },
+  "botoes": {
+    "user": {
+      "x": 36,
+      "y": 143,
+      "descricao": "Botão para Acessar as Configurações do Usuário"
+    },
+    "trocar_filial": {
+      "x": 180,
+      "y": 496,
+      "descricao": "Botão para Acessar as Configurações do Usuário"
+    },
+    "sim_confirmacao": {
+      "x": 865,
+      "y": 525,
+      "descricao": "Botão Sim no aviso de confirmação para fechar telas ao trocar de filial"
+    },
+    "ok_filial": {
+      "x": 1449,
+      "y": 163,
+      "descricao": "Botão Ok na tela FSELFIL (Seleção de Filial)"
+    },
+    "pesquisar_filial": {
+      "x": 1449,
+      "y": 199,
+      "descricao": "Botão Pesquisar na tela FSELFIL"
+    },
+    "cancelar_filial": {
+      "x": 1449,
+      "y": 231,
+      "descricao": "Botão Cancelar na tela FSELFIL"
+    },
+    "ajuda_filial": {
+      "x": 1449,
+      "y": 263,
+      "descricao": "Botão Ajuda na tela FSELFIL"
+    },
+    "maleta": {
+      "x": 36,
+      "y": 386,
+      "descricao": "Menu lateral - Botão Maleta"
+    },
+    "financas": {
+      "x": 263,
+      "y": 460,
+      "descricao": "Menu lateral - Botão Finanças"
+    },
+    "contas_receber": {
+      "x": 235,
+      "y": 340,
+      "descricao": "Menu lateral - Botão Contas a Receber"
+    },
+    "entrada_manutencao": {
+      "x": 255,
+      "y": 355,
+      "descricao": "Menu lateral - Botão Entrada e Manutenção"
+    },
+    "titulos_manutencao": {
+      "x": 255,
+      "y": 380,
+      "descricao": "Menu lateral - Botão Títulos/Manutenção"
+    }
+  },
+  "filiais": {
+    "200": {
+      "posicao": 0,
+      "nome": "Serviço Social da Indústria DR/PE",
+      "fantasia": "Sede",
+      "cnpj": "03.910.210/0001-05",
+      "coordenadas": {
+        "x": 300,
+        "y": 138
+      }
+    },
+    "309": {
+      "posicao": 1,
+      "nome": "Sesi-Condomínio",
+      "fantasia": "Sesi-Condomínio",
+      "cnpj": "03.910.210/0001-05",
+      "coordenadas": {
+        "x": 300,
+        "y": 156
+      }
+    },
+    "400": {
+      "posicao": 2,
+      "nome": "Centro de Saúde Sen. Albano Franco",
+      "fantasia": "Unid. Mustardinha",
+      "cnpj": "03.910.210/0004-58",
+      "coordenadas": {
+        "x": 300,
+        "y": 174
+      }
+    },
+    "404": {
+      "posicao": 3,
+      "nome": "Unidade Sesi Clínica",
+      "fantasia": "Unid. Clínica",
+      "cnpj": "03.910.210/0021-39",
+      "coordenadas": {
+        "x": 300,
+        "y": 192
+      }
+    },
+    "501": {
+      "posicao": 4,
+      "nome": "Unidade Belo Jardim",
+      "fantasia": "Unid. Belo Jardim",
+      "cnpj": "03.910.210/0022-16",
+      "coordenadas": {
+        "x": 300,
+        "y": 210
+      }
+    },
+    "504": {
+      "posicao": 5,
+      "nome": "Unidade Presidente Dutra",
+      "fantasia": "Unid. Vasco Gama",
+      "cnpj": "03.910.210/0005-39",
+      "coordenadas": {
+        "x": 300,
+        "y": 228
+      }
+    },
+    "505": {
+      "posicao": 6,
+      "nome": "Unidade Eng. Roberto Egydio de Azevedo",
+      "fantasia": "Unid. Ibura",
+      "cnpj": "03.910.210/0003-77",
+      "coordenadas": {
+        "x": 300,
+        "y": 246
+      }
+    },
+    "506": {
+      "posicao": 7,
+      "nome": "Unidade Antonio Carlos Azevedo",
+      "fantasia": "Unid. Camaragibe",
+      "cnpj": "03.910.210/0008-31",
+      "coordenadas": {
+        "x": 300,
+        "y": 264
+      }
+    },
+    "507": {
+      "posicao": 8,
+      "nome": "Unidade Aprígio Velloso da Silveira",
+      "fantasia": "Unid. Paulista",
+      "cnpj": "03.910.210/0009-12",
+      "coordenadas": {
+        "x": 300,
+        "y": 282
+      }
+    },
+    "508": {
+      "posicao": 9,
+      "nome": "Unidade Dr. Diniz Passos",
+      "fantasia": "Unid. Jaboatão",
+      "cnpj": "03.910.210/0007-50",
+      "coordenadas": {
+        "x": 300,
+        "y": 300
+      }
+    },
+    "510": {
+      "posicao": 10,
+      "nome": "Unidade Antonio Dourado Neto",
+      "fantasia": "Unid. Cabo",
+      "cnpj": "03.910.210/0011-37",
+      "coordenadas": {
+        "x": 300,
+        "y": 318
+      }
+    },
+    "511": {
+      "posicao": 11,
+      "nome": "Unidade Luiz Dias Lins",
+      "fantasia": "Unid. Escada",
+      "cnpj": "03.910.210/0010-56",
+      "coordenadas": {
+        "x": 300,
+        "y": 336
+      }
+    },
+    "512": {
+      "posicao": 12,
+      "nome": "Unidade João Cardoso Ayres Filho",
+      "fantasia": "Unid. Ribeirão",
+      "cnpj": "03.910.210/0012-18",
+      "coordenadas": {
+        "x": 300,
+        "y": 354
+      }
+    },
+    "513": {
+      "posicao": 13,
+      "nome": "Unidade Numa Machado",
+      "fantasia": "Unid. Goiana",
+      "cnpj": "03.910.210/0014-80",
+      "coordenadas": {
+        "x": 300,
+        "y": 372
+      }
+    },
+    "515": {
+      "posicao": 14,
+      "nome": "Unidade José Ranulfo da Costa Queiroz",
+      "fantasia": "Unid. Caruaru",
+      "cnpj": "03.910.210/0017-72",
+      "coordenadas": {
+        "x": 300,
+        "y": 390
+      }
+    },
+    "517": {
+      "posicao": 15,
+      "nome": "Unidade Governador Nilo de Souza Coelho",
+      "fantasia": "Unid. Petrolina",
+      "cnpj": "03.910.210/0019-14",
+      "coordenadas": {
+        "x": 300,
+        "y": 408
+      }
+    },
+    "518": {
+      "posicao": 16,
+      "nome": "Unidade Luiz Gonzaga Duarte",
+      "fantasia": "Unid. Araripina",
+      "cnpj": "03.910.210/0018-55",
+      "coordenadas": {
+        "x": 300,
+        "y": 426
+      }
+    },
+    "519": {
+      "posicao": 17,
+      "nome": "Centro de Lazer Aníbal Cardoso",
+      "fantasia": "Centro Lazer Torre",
+      "cnpj": "03.910.210/0002-96",
+      "coordenadas": {
+        "x": 300,
+        "y": 444
+      }
+    },
+    "520": {
+      "posicao": 18,
+      "nome": "Arquivo Edf Limoeiro",
+      "fantasia": "Arq. Edf Limoeiro",
+      "cnpj": "03.910.210/0006-10",
+      "coordenadas": {
+        "x": 300,
+        "y": 462
+      }
+    },
+    "521": {
+      "posicao": 19,
+      "nome": "Unidade Operacional Tamandaré",
+      "fantasia": "Hotel Tamandaré",
+      "cnpj": "03.910.210/0013-49",
+      "coordenadas": {
+        "x": 300,
+        "y": 480
+      }
+    },
+    "523": {
+      "posicao": 20,
+      "nome": "Unidade Suape",
+      "fantasia": "Unid. Suape",
+      "cnpj": "03.910.210/0025-10",
+      "coordenadas": {
+        "x": 300,
+        "y": 498
+      }
+    },
+    "524": {
+      "posicao": 21,
+      "nome": "Unidade Agamenon Magalhães",
+      "fantasia": "Unid. Moreno",
+      "cnpj": "03.910.210/0016-91",
+      "coordenadas": {
+        "x": 300,
+        "y": 516
+      }
+    },
+    "525": {
+      "posicao": 22,
+      "nome": "Sesi Saúde",
+      "fantasia": "Sesi Saúde",
+      "cnpj": "03.910.210/0023-32",
+      "coordenadas": {
+        "x": 300,
+        "y": 534
+      }
+    },
+    "526": {
+      "posicao": 23,
+      "nome": "Unidade Ipojuca",
+      "fantasia": "Unid. Ipojuca",
+      "cnpj": "03.910.210/0024-00",
+      "coordenadas": {
+        "x": 300,
+        "y": 552
+      }
+    },
+    "527": {
+      "posicao": 24,
+      "nome": "Sesi Saúde - Goiana",
+      "fantasia": "Sesi Saúde - Goiana",
+      "cnpj": "03.910.210/0026-63",
+      "coordenadas": {
+        "x": 300,
+        "y": 570
+      }
+    }
+  }
+}
