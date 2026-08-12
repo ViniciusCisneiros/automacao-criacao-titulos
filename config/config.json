@@ -1,14 +1,20 @@
 {
   "delays": {
-    "home": 0.8,
-    "key": 0.15,
-    "enter": 1.2,
-    "click": 0.8,
+    "home": 1.0,
+    "key": 0.3,
+    "enter": 1.5,
+    "click": 0.5,
     "passo_menu": 1.0,
     "abrir_janela": 2.0,
-    "entre_titulos": 1.5
+    "entre_titulos": 1.5,
+    "preenchimento": 1.0
   },
   "botoes": {
+    "inicio": {
+      "x": 1113,
+      "y": 555,
+      "descricao": "Início"
+    },
     "user": {
       "x": 36,
       "y": 143,
@@ -18,6 +24,16 @@
       "x": 180,
       "y": 496,
       "descricao": "Botão para Acessar as Configurações do Usuário"
+    },
+    "inicio_lista_filial": {
+      "x": 1413,
+      "y": 133,
+      "descricao": "Tabela de filiais na tela de seleção de filiais"
+    },
+    "navegar_lista_filial": {
+      "x": 1464,
+      "y": 138,
+      "descricao": "Tabela de filiais na tela de seleção de filiais"
     },
     "sim_confirmacao": {
       "x": 865,
@@ -68,6 +84,36 @@
       "x": 255,
       "y": 380,
       "descricao": "Menu lateral - Botão Títulos/Manutenção"
+    },
+    "pesquisa_cliente": {
+      "x": 487,
+      "y": 359,
+      "descricao": "Clica no botão de pesquisar cliente"
+    },
+    "cancelar_filtro_cliente": {
+      "x": 1864,
+      "y": 117,
+      "descricao": "Clica no botão de cancelar cliente"
+    },
+    "confirmar_cliente": {
+      "x": 64,
+      "y": 245,
+      "descricao": "Clica no botão de selecionar cliente"
+    },
+    "filtrar_cliente": {
+      "x": 1615,
+      "y": 145,
+      "descricao": "Clica no botão de filtrar cliente"
+    },
+    "sair_titulo": {
+      "x": 1860,
+      "y": 334,
+      "descricao": "Clica no botão de sair da tela"
+    },
+    "cancelar_titulo": {
+      "x": 1860,
+      "y": 238,
+      "descricao": "Clica no botão de cancelar o cadastro do título"
     }
   },
   "filiais": {
