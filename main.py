@@ -585,15 +585,30 @@ def preencher_ate_data_entrada(titulo):
     # Campo Valor Original
     verificar_failsafe()
     valor_original = str(titulo.get("valor_original", "")).strip().replace(".", ",")
-    print(f"    ➜ [18/19] Digitando Valor Original: {valor_original}")
+    print(f"    ➜ [18/20] Digitando Valor Original: {valor_original}")
     pyautogui.write(valor_original, interval=0.03)
+    aguardar_com_failsafe(delay_campo)
+
+    # 9x Tab para chegar ao campo Data Provável
+    verificar_failsafe()
+    print("    ➜ [19/20] Navegando até campo Data Provável (8x Tab)...")
+    for _ in range(8):
+        pyautogui.press("tab")
+        aguardar_com_failsafe(0.1)
+
+    # Campo Data Provável (utiliza a mesma data de vencimento, com o parâmetro inverter_dia_mes=True)
+    verificar_failsafe()
+    data_provavel_br = formatar_data_br(titulo.get("data_vencimento"), com_barras=False, inverter_dia_mes=True)
+    print(f"    ➜ [20/20] Digitando Data Provável: {data_provavel_br}")
+    pyautogui.write(data_provavel_br, interval=0.03)
     aguardar_com_failsafe(delay_campo)
     pyautogui.press("tab")
     aguardar_com_failsafe(delay_campo)
-    # 34x Tab para percorrer os campos restantes e efetivar a gravação sem avançar para o 2º campo do novo título
+
+    # 24x Tab restantes para finalizar a gravação (completando o total de 34 Tabs)
     verificar_failsafe()
-    print("    ➜ [19/19] Finalizando cadastro (34x Tab)...")
-    for _ in range(34):
+    print("    ➜ Finalizando cadastro (26x Tab)...")
+    for _ in range(26):
         pyautogui.press("tab")
         aguardar_com_failsafe(0.1)
 

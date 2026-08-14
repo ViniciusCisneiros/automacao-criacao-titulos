@@ -105,8 +105,10 @@ A automação executa a inserção dos dados no formulário seguindo a ordem aba
 | **15** | Conta Financeira | Digita o código da conta financeira + `Tab` |
 | **16** | Centro de Custo | Digita o código do centro de custo + `Tab` |
 | **17** | Data Vencimento | Digita no formato `MMDDYYYY` (ajuste para inversão automática do ERP) + `Tab` |
-| **18** | Valor Original | Digita o valor formatado com vírgula (ex: `269,05`) + `Tab` |
-| **19** | **Finalização** | Pressiona **35x `Tab`** para percorrer os campos restantes e efetivar a gravação do registro |
+| **18** | Valor Original | Digita o valor formatado com vírgula (ex: `269,05`) |
+| **19** | Navegação | Pressiona **9x `Tab`** para alcançar o campo Data Provável |
+| **20** | Data Provável | Digita a data no formato `MMDDYYYY` (mesma data de vencimento com inversão automática) + `Tab` |
+| **21** | **Finalização** | Pressiona **24x `Tab`** restantes para efetivar a gravação do registro (completando o ciclo de 34 Tabs) |
 
 ---
 
