@@ -194,30 +194,35 @@ def registrar_titulo_pulado(titulo, indice, motivo="Cliente Duplicado"):
 
 def verificar_cliente_duplicado(nome_cliente):
     """
-    Verifica se a grade de pesquisa do ERP retornou mais de 1 cliente com o mesmo nome.
-    Copia o conteúdo da grade (Ctrl+A -> Ctrl+C) e analisa a quantidade de linhas.
+    Verifica se a grade de pesquisa do ERP possui mais de 1 cliente com o mesmo nome.
+    Captura uma imagem (screenshot) da região a partir de X: 38, Y: 271 (60px de largura por 50px de altura)
+    e identifica se existem pixels pretos/escuros (texto indicando a presença da 2ª linha de cliente).
     """
     try:
-        pyperclip.copy("")
-        # Seleciona todas as linhas da grade e copia
-        pyautogui.hotkey("ctrl", "a")
-        aguardar_com_failsafe(0.2)
-        pyautogui.hotkey("ctrl", "c")
-        aguardar_com_failsafe(0.3)
+        aguardar_com_failsafe(0.5)
 
-        conteudo = pyperclip.paste().strip()
-        if not conteudo:
-            return False
+        # Screenshot da região da 2ª linha na grade de resultados do ERP
+        img = pyautogui.screenshot(region=(38, 271, 60, 50))
 
-        lines = [line.strip() for line in conteudo.splitlines() if line.strip()]
-        nome_busca = str(nome_cliente).upper().strip()
+        pixels_escuros = 0
+        largura, altura = img.size
 
-        # Conta quantas linhas da grade de resultados contêm o nome do cliente
-        linhas_correspondentes = sum(1 for line in lines if nome_busca in line.upper())
-        log(f"  [Verificação Cliente] Linhas encontradas na pesquisa para '{nome_cliente}': {linhas_correspondentes}")
-        return linhas_correspondentes > 1
+        for x in range(largura):
+            for y in range(altura):
+                r, g, b = img.getpixel((x, y))[:3]
+                # Pixels escuros correspondentes ao texto (número/nome do cliente)
+                if r < 100 and g < 100 and b < 100:
+                    pixels_escuros += 1
+
+        log(f"  [Verificação Imagem] Pixels escuros encontrados na região (X:38, Y:271): {pixels_escuros}")
+
+        # Se encontrou pixels escuros suficientes, existe texto na 2ª linha (duplicidade)
+        tem_duplicado = pixels_escuros > 15
+        if tem_duplicado:
+            log(f"  ➜ [CLIENTE DUPLICADO DETECTADO] Segunda linha de cliente encontrada para '{nome_cliente}'!", "AVISO")
+        return tem_duplicado
     except Exception as e:
-        log(f"  [Verificação Cliente] Erro ao verificar duplicidade: {e}", "AVISO")
+        log(f"  [Verificação Imagem] Erro ao analisar pixels da tela: {e}", "AVISO")
         return False
 
 
@@ -489,6 +494,19 @@ def preencher_ate_data_entrada(titulo):
     clicar_botao("filtrar_cliente")
     aguardar_com_failsafe(DELAYS.get("abrir_janela", 2.0))
 
+    # Verifica se a pesquisa retornou mais de 1 cliente com o mesmo nome
+    if verificar_cliente_duplicado(nome_cliente):
+        log(f"  ➜ [CLIENTE DUPLICADO] Múltiplos clientes encontrados para '{nome_cliente}'. Pulando este título!", "AVISO")
+        verificar_failsafe()
+        log("  [Automação] Clicando em cancelar_filtro_cliente...")
+        clicar_botao("cancelar_filtro_cliente")
+        aguardar_com_failsafe(1.0)
+        log("  [Automação] Clicando em cancelar_titulo...")
+        clicar_botao("cancelar_titulo")
+        pyautogui.press("enter")
+        aguardar_com_failsafe(1.0)
+        return False  # Retorna False indicando que o título foi pulado por duplicidade
+
     # Duplo clique no botão confirmar_cliente para selecionar o primeiro resultado
     verificar_failsafe()
     print("    ➜ [9/19] Duplo clique em Confirmar Cliente...")
@@ -572,14 +590,15 @@ def preencher_ate_data_entrada(titulo):
     aguardar_com_failsafe(delay_campo)
     pyautogui.press("tab")
     aguardar_com_failsafe(delay_campo)
-    # 33x Tab para finalizar e salvar o cadastro do título
+    # 34x Tab para percorrer os campos restantes e efetivar a gravação sem avançar para o 2º campo do novo título
     verificar_failsafe()
-    print("    ➜ [19/19] Finalizando cadastro (33x Tab)...")
-    for _ in range(32):
+    print("    ➜ [19/19] Finalizando cadastro (34x Tab)...")
+    for _ in range(34):
         pyautogui.press("tab")
         aguardar_com_failsafe(0.1)
 
     print("  ✔ [Formulário ERP] Cadastro do título finalizado com sucesso!")
+    return True
 
 def executar_automacao_completa(modo_teste=False):
     log("=======================================================")
@@ -643,22 +662,26 @@ def executar_automacao_completa(modo_teste=False):
                 filial_atual = projeto_filial
                 tela_aberta = True  # Tela F301TCR passa a estar aberta
             else:
-                log(f"  ➜ [MANTER FILIAL] Filial atual já é '{filial_atual}'. Clicando em Títulos/Manutenção...")
-                clicar_botao("titulos_manutencao")
+                log(f"  ➜ [MANTER FILIAL] Filial atual já é '{filial_atual}'. Mantendo formulário F301TCR pronto.")
+                if not tela_aberta:
+                    clicar_botao("titulos_manutencao", double_click=True)
+                    tela_aberta = True
 
             # Preencher campos do formulário F301TCR
-            preencher_ate_data_entrada(titulo)
+            sucesso = preencher_ate_data_entrada(titulo)
+
+            if not sucesso:
+                # O título foi pulado por duplicidade de cliente
+                salvar_progresso(index, num_titulo)
+                registrar_titulo_planilha(titulo, index, status="PULADO - CLIENTE DUPLICADO")
+                registrar_titulo_pulado(titulo, index, motivo="Cliente Duplicado")
+                log(f"  ✔ Título {num_titulo} registrado como PULADO nas planilhas com sucesso.", "AVISO")
+                aguardar_com_failsafe(DELAYS.get("entre_titulos", 1.5))
+                continue
 
             # Registrar sucesso do título na planilha e no checkpoint de progresso
             salvar_progresso(index, num_titulo)
             registrar_titulo_planilha(titulo, index, status="SUCESSO")
-
-            # Após preencher, cancela a tela do título atual
-            verificar_failsafe()
-            log("  [Automação] Clicando em Cancelar Título...")
-            clicar_botao("cancelar_titulo")
-            pyautogui.press("enter")
-            aguardar_com_failsafe(DELAYS.get("click", 0.5))
 
             # Verifica se o próximo título é de filial diferente
             proximo_titulo = titulos[index] if index < len(titulos) else None  # index já começa em 1
