@@ -23,6 +23,12 @@ import pyautogui
 import pyperclip
 
 try:
+    import numpy as np
+    NUMPY_DISPONIVEL = True
+except ImportError:
+    NUMPY_DISPONIVEL = False
+
+try:
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment
     EXCEL_DISPONIVEL = True
@@ -282,6 +288,101 @@ def formatar_data_br(data_str, com_barras=False, inverter_dia_mes=False):
             return f"{mes}/{dia}/{ano}" if com_barras else f"{mes}{dia}{ano}"
         return f"{dia}/{mes}/{ano}" if com_barras else f"{dia}{mes}{ano}"
     return str(data_str)
+
+# Verificação contínua do Fail-Safe (canto superior esquerdo)
+def verificar_failsafe():
+    x, y = pyautogui.position()
+    if x <= 15 and y <= 15:
+        raise pyautogui.FailSafeException("Fail-Safe ativado: Mouse posicionado no canto superior esquerdo.")
+
+class PopupInesperadoException(Exception):
+    """Exceção lançada quando uma caixa de aviso / popup inesperado é detectado na tela."""
+    pass
+
+_ultimo_check_popup = 0.0
+
+def detectar_popup_por_cor(img_pil):
+    """
+    Analisa a imagem (screenshot PIL) em busca de ícones de popup (Vermelho, Azul, Amarelo)
+    na região delimitada do retângulo de avisos do ERP: p1=(493,436) até p4=(1319,600).
+    Retorna (cor_detectada, quantidade_pixels) ou (None, 0).
+    """
+    if not NUMPY_DISPONIVEL:
+        return None, 0
+
+    w_total, h_total = img_pil.size
+    
+    # Define Região de Interesse (ROI) - Caixas de aviso/diálogo do ERP (p1: 493,436 -> p4: 1319,600)
+    x_start = min(493, w_total - 1)
+    x_end = min(1319, w_total)
+    y_start = min(436, h_total - 1)
+    y_end = min(600, h_total)
+    
+    img_roi = img_pil.crop((x_start, y_start, x_end, y_end))
+    arr = np.array(img_roi)
+    
+    r = arr[:, :, 0].astype(int)
+    g = arr[:, :, 1].astype(int)
+    b = arr[:, :, 2].astype(int)
+    
+    # 1. MÁSCARA VERMELHA (Erro / Stop / Conexão Encerrada / "É necessário informar Nº Título")
+    red_mask = (r >= 150) & (g <= 90) & (b <= 90) & ((r - np.maximum(g, b)) >= 50)
+    
+    # 2. MÁSCARA AZUL (Aviso / Informação / "Registro não existe. Selecione outro")
+    blue_mask = (b >= 140) & (r <= 95) & (g <= 170) & ((b - r) >= 45)
+    
+    # 3. MÁSCARA AMARELA (Alerta / Warning / Atenção)
+    yellow_mask = (r >= 170) & (g >= 140) & (b <= 95) & ((np.minimum(r, g) - b) >= 60)
+    
+    red_count = int(np.sum(red_mask))
+    blue_count = int(np.sum(blue_mask))
+    yellow_count = int(np.sum(yellow_mask))
+    
+    threshold = 120
+    
+    if red_count >= threshold:
+        return "VERMELHO (Erro/Falha)", red_count
+    elif blue_count >= threshold:
+        return "AZUL (Informação/Aviso)", blue_count
+    elif yellow_count >= threshold:
+        return "AMARELO (Alerta/Atenção)", yellow_count
+        
+    return None, 0
+
+def verificar_popup_inesperado():
+    """
+    Captura a tela e verifica se apareceu uma caixa de aviso / popup inesperado
+    com ícone Vermelho, Azul ou Amarelo na região do retângulo (493, 436, 1319, 600).
+    Caso detectado, salva a imagem APENAS da área do retângulo de erro e interrompe a automação.
+    """
+    try:
+        img_screenshot = pyautogui.screenshot()
+        cor_detectada, num_pixels = detectar_popup_por_cor(img_screenshot)
+        if cor_detectada:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            caminho_imagem_erro = OUTPUT_DIR / f"erro_popup_{timestamp}.png"
+            
+            # Recorta apenas a área do retângulo (p1=493,436 a p4=1319,600)
+            w_total, h_total = img_screenshot.size
+            x_start = min(493, w_total - 1)
+            x_end = min(1319, w_total)
+            y_start = min(436, h_total - 1)
+            y_end = min(600, h_total)
+            
+            img_retangulo = img_screenshot.crop((x_start, y_start, x_end, y_end))
+            img_retangulo.save(caminho_imagem_erro)
+            
+            mensagem = (
+                f"Popup de aviso inesperado detectado na tela! "
+                f"Ícone: {cor_detectada} ({num_pixels} pixels). "
+                f"Imagem salva em: {caminho_imagem_erro.name}"
+            )
+            log(f"🚨 [POPUP INESPERADO DETECTADO] {mensagem}", "ERRO")
+            raise PopupInesperadoException(mensagem)
+    except PopupInesperadoException:
+        raise
+    except Exception as e:
+        pass
 
 # Verificação contínua do Fail-Safe (canto superior esquerdo)
 def verificar_failsafe():
@@ -605,6 +706,10 @@ def preencher_ate_data_entrada(titulo):
     pyautogui.press("tab")
     aguardar_com_failsafe(delay_campo)
 
+    # Validação de popup de aviso/erro inesperado (executada unicamente nesta última etapa, antes dos 26 Tabs)
+    print("    ➜ [Validação Final] Verificando se apareceu popup de aviso/erro inesperado...")
+    verificar_popup_inesperado()
+
     # 24x Tab restantes para finalizar a gravação (completando o total de 34 Tabs)
     verificar_failsafe()
     print("    ➜ Finalizando cadastro (26x Tab)...")
@@ -722,6 +827,14 @@ def executar_automacao_completa(modo_teste=False):
         log(f"  - Planilha: {EXCEL_OUTPUT_PATH.name if EXCEL_DISPONIVEL else CSV_OUTPUT_PATH.name}")
         log("=======================================================")
 
+    except PopupInesperadoException as e:
+        log(f"INTERRUPÇÃO POR POPUP INESPERADO: {e}", "INTERRUPÇÃO")
+        print("\n\n" + "!" * 65)
+        print(" INTERRUPÇÃO DE EMERGÊNCIA DISPARADA: POPUP INESPERADO DETECTADO! ")
+        print(f" {e}")
+        print(" A automação foi INTERROMPIDA para evitar preenchimentos incorretos.")
+        print(f" Progresso salvo no título {obter_ultimo_indice_processado()}. Resolva o aviso e execute novamente.")
+        print("!" * 65 + "\n")
     except pyautogui.FailSafeException:
         log("INTERRUPÇÃO DE EMERGÊNCIA DISPARADA! Mouse no canto superior esquerdo (Fail-Safe).", "INTERRUPÇÃO")
         print("\n\n" + "!" * 65)

@@ -4,7 +4,7 @@ Esta automação foi desenvolvida em Python para automatizar o cadastro e lança
 
 ---
 
-## 📚 Bibliotecas Utilizadas
+## Bibliotecas Utilizadas
 
 Abaixo está a relação detalhada das bibliotecas utilizadas no projeto e a responsabilidade de cada uma na automação:
 
@@ -21,7 +21,7 @@ Abaixo está a relação detalhada das bibliotecas utilizadas no projeto e a res
 
 ---
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```text
 automacao-criacao-titulos/
@@ -44,7 +44,7 @@ automacao-criacao-titulos/
 
 ---
 
-## ⚙️ Pré-Requisitos e Instalação
+## Pré-Requisitos e Instalação
 
 Certifique-se de utilizar o Python 3.8+ e instalar as bibliotecas necessárias:
 
@@ -54,7 +54,7 @@ pip install pyautogui pyperclip openpyxl pandas xlrd
 
 ---
 
-## 🚀 Como Executar
+## Como Executar
 
 1. **Preparação dos Dados:**
    Caso haja uma nova planilha de títulos, execute o script de tratamento:
@@ -70,12 +70,12 @@ pip install pyautogui pyperclip openpyxl pandas xlrd
 
 ---
 
-## 🛠️ Fluxo de Funcionamento Detalhado
+## Fluxo de Funcionamento Detalhado
 
 ### 1. Troca Inteligente de Filial
 - O robô verifica a filial (projeto) do título atual.
 - Se a filial for diferente da anterior:
-  - Clica na foto/menu do usuário → `Trocar Filial`.
+  - Clica na foto/menu do usuário -> `Trocar Filial`.
   - Clica no início da lista de filiais e navega até a posição da filial correspondente.
   - Confirma com `Enter` e navega pelos menus até a tela de títulos.
 - Se a filial for a mesma, o robô abre diretamente a tela de **Títulos/Manutenção**.
@@ -106,16 +106,24 @@ A automação executa a inserção dos dados no formulário seguindo a ordem aba
 | **16** | Centro de Custo | Digita o código do centro de custo + `Tab` |
 | **17** | Data Vencimento | Digita no formato `MMDDYYYY` (ajuste para inversão automática do ERP) + `Tab` |
 | **18** | Valor Original | Digita o valor formatado com vírgula (ex: `269,05`) |
-| **19** | Navegação | Pressiona **9x `Tab`** para alcançar o campo Data Provável |
+| **19** | Navegação | Pressiona **8x `Tab`** para alcançar o campo Data Provável |
 | **20** | Data Provável | Digita a data no formato `MMDDYYYY` (mesma data de vencimento com inversão automática) + `Tab` |
-| **21** | **Finalização** | Pressiona **24x `Tab`** restantes para efetivar a gravação do registro (completando o ciclo de 34 Tabs) |
+| **21** | **Finalização** | Pressiona **26x `Tab`** restantes para efetivar a gravação do registro |
 
 ---
 
-## 🛡️ Segurança, Resiliência e Logs
+## Segurança, Resiliência e Logs
 
-- 🚨 **Fail-Safe (Parada de Emergência):** Mover o mouse para o **canto superior esquerdo da tela** (`X <= 15, Y <= 15`) interrompe a automação imediatamente.
-- 💾 **Mecanismo de Retomada (Checkpoint):** Salva o progresso no arquivo `outputs/progresso.json`. Caso a automação pare (por parada manual ou erro), a próxima execução **retoma exatamente de onde parou**.
-- 📊 **Relatórios em `outputs/`:**
+- **Fail-Safe (Parada de Emergência):** Mover o mouse para o **canto superior esquerdo da tela** (`X <= 15, Y <= 15`) interrompe a automação imediatamente.
+- **Mecanismo de Retomada (Checkpoint):** Salva o progresso no arquivo `outputs/progresso.json`. Caso a automação pare (por parada manual ou erro), a próxima execução **retoma exatamente de onde parou**.
+- **Relatórios em `outputs/`:**
   - **Logs em TXT:** Registro detalhado com timestamps das operações.
   - **Planilha Excel/CSV:** Grava o status de cada título (`SUCESSO` ou `PULADO - CLIENTE DUPLICADO`).
+
+---
+
+## Controle de Revisão da Documentação
+
+| Versão | Data | Autor | Descrição das Alterações |
+|--------|------|-------|--------------------------|
+| 1.0 | 14/08/2026 | Vinícius Cisneiros | Documentação completa do fluxo de automação do Senior ERP, mapeamento de campos e bibliotecas |
