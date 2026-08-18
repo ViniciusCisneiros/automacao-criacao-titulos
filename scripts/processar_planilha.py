@@ -44,11 +44,13 @@ def processar_planilha():
         "Data Emissão": "data_emissao",
         "Data Entrada": "data_entrada",
         "Cliente": "cliente",
+        "CNPJ/CPF": "cpf_cnpj",
         "Observação": "observacao",
         "Projeto": "projeto",
         "Fase": "fase",
         "Conta Financeira": "conta_financeira",
         "Centro de Custo": "centro_custo",
+        "Cod. Do Centro de Custo": "cod._do_centro_de_custo",
         "Data de Vencimento": "data_vencimento",
         "Valor Original": "valor_original"
     }

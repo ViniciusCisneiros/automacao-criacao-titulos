@@ -91,11 +91,11 @@ A automação executa a inserção dos dados no formulário seguindo a ordem aba
 | **1** | Nº Título | Digita o número do título + `Tab` |
 | **2** | Tipo Título | Digita o tipo (ex: `SGE`) + `Tab` |
 | **3** | Transação | Digita o código da transação (ex: `90335`) + `Tab` |
-| **4** | Data Emissão | Digita a data no formato `DDMMYYYY` + `Tab` |
-| **5** | Data Entrada | Digita a data no formato `DDMMYYYY` + `Tab` |
+| **4** | Data Emissão | Digita a data no formato padrão `DDMMYYYY` + `Tab` |
+| **5** | Data Entrada | Digita a data no formato padrão `DDMMYYYY` + `Tab` |
 | **6** | Pesquisa de Cliente | Clica no botão `pesquisa_cliente` |
-| **7** | Filtro de Cliente | Pressiona `Alt+A`, cola o nome via clipboard (`Ctrl+V`) para preservar acentos e clica em `filtrar_cliente` |
-| **8** | **Detecção de Duplicidade** | Analisa os pixels da 2ª linha na grade (`X: 38, Y: 271`). Se houver mais de 1 cliente cadastrado com o mesmo nome, clica em `cancelar_filtro_cliente` + `cancelar_titulo` e pula o registro |
+| **7** | Filtro de Cliente | Pressiona `Alt+A`, insere o **CPF/CNPJ** do cliente (obtido do campo `cpf_cnpj` da planilha) e clica em `filtrar_cliente` |
+| **8** | **Validação Prévia & Duplicidade** | Inspeciona os pixels pretos na grade em `(X: 60, Y: 240)`. Se a grade estiver **vazia (0 pixels pretos)**, o cliente **não existe**: pressiona `ESC` (2x) e marca o título como `PULADO - CLIENTE NÃO ENCONTRADO`. Se houver múltiplos registros iguais, clica em cancelar e marca como `PULADO - CLIENTE DUPLICADO`. |
 | **9** | Confirmação do Cliente | Executa um **duplo clique** em `confirmar_cliente` |
 | **10** | Navegação | Pressiona **4x `Tab`** para alcançar o campo de observações |
 | **11** | Observação | Cola o texto de observação via clipboard (`Ctrl+V`) |
@@ -104,10 +104,10 @@ A automação executa a inserção dos dados no formulário seguindo a ordem aba
 | **14** | Fase | Digita a fase (ex: `1`) + `Tab` |
 | **15** | Conta Financeira | Digita o código da conta financeira + `Tab` |
 | **16** | Centro de Custo | Digita o código do centro de custo + `Tab` |
-| **17** | Data Vencimento | Digita no formato `MMDDYYYY` (ajuste para inversão automática do ERP) + `Tab` |
+| **17** | Data Vencimento | Digita no formato brasileiro padrão `DDMMYYYY` + `Tab` |
 | **18** | Valor Original | Digita o valor formatado com vírgula (ex: `269,05`) |
 | **19** | Navegação | Pressiona **8x `Tab`** para alcançar o campo Data Provável |
-| **20** | Data Provável | Digita a data no formato `MMDDYYYY` (mesma data de vencimento com inversão automática) + `Tab` |
+| **20** | Data Provável | Digita a data no formato brasileiro padrão `DDMMYYYY` + `Tab` |
 | **21** | **Finalização** | Pressiona **26x `Tab`** restantes para efetivar a gravação do registro |
 
 ---
@@ -118,7 +118,7 @@ A automação executa a inserção dos dados no formulário seguindo a ordem aba
 - **Mecanismo de Retomada (Checkpoint):** Salva o progresso no arquivo `outputs/progresso.json`. Caso a automação pare (por parada manual ou erro), a próxima execução **retoma exatamente de onde parou**.
 - **Relatórios em `outputs/`:**
   - **Logs em TXT:** Registro detalhado com timestamps das operações.
-  - **Planilha Excel/CSV:** Grava o status de cada título (`SUCESSO` ou `PULADO - CLIENTE DUPLICADO`).
+  - **Planilha Excel/CSV:** Grava o status de cada título (`SUCESSO`, `PULADO - CLIENTE NÃO ENCONTRADO` ou `PULADO - CLIENTE DUPLICADO`).
 
 ---
 
@@ -127,3 +127,4 @@ A automação executa a inserção dos dados no formulário seguindo a ordem aba
 | Versão | Data | Autor | Descrição das Alterações |
 |--------|------|-------|--------------------------|
 | 1.0 | 14/08/2026 | Vinícius Cisneiros | Documentação completa do fluxo de automação do Senior ERP, mapeamento de campos e bibliotecas |
+| 1.1 | 18/08/2026 | Vinícius Cisneiros | Atualização para busca de cliente por CPF/CNPJ, validação prévia de existência na grade (`X: 60, Y: 240`), formatação de datas no padrão `DDMMYYYY` e registro de títulos pulados por cliente não encontrado |

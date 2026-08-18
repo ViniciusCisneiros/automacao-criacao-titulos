@@ -198,9 +198,9 @@ def registrar_titulo_pulado(titulo, indice, motivo="Cliente Duplicado"):
     except Exception as e:
         log(f"Erro ao gravar no CSV de pulados: {e}", "ERRO")
 
-def verificar_cliente_duplicado(nome_cliente):
+def verificar_cliente_duplicado(identificador_cliente):
     """
-    Verifica se a grade de pesquisa do ERP possui mais de 1 cliente com o mesmo nome.
+    Verifica se a grade de pesquisa do ERP possui mais de 1 cliente com o mesmo CPF/CNPJ ou nome.
     Captura uma imagem (screenshot) da região a partir de X: 38, Y: 271 (60px de largura por 50px de altura)
     e identifica se existem pixels pretos/escuros (texto indicando a presença da 2ª linha de cliente).
     """
@@ -225,7 +225,7 @@ def verificar_cliente_duplicado(nome_cliente):
         # Se encontrou pixels escuros suficientes, existe texto na 2ª linha (duplicidade)
         tem_duplicado = pixels_escuros > 15
         if tem_duplicado:
-            log(f"  ➜ [CLIENTE DUPLICADO DETECTADO] Segunda linha de cliente encontrada para '{nome_cliente}'!", "AVISO")
+            log(f"  ➜ [CLIENTE DUPLICADO DETECTADO] Segunda linha de cliente encontrada para '{identificador_cliente}'!", "AVISO")
         return tem_duplicado
     except Exception as e:
         log(f"  [Verificação Imagem] Erro ao analisar pixels da tela: {e}", "AVISO")
@@ -301,10 +301,10 @@ class PopupInesperadoException(Exception):
 
 _ultimo_check_popup = 0.0
 
-def detectar_popup_por_cor(img_pil):
+def detectar_popup_por_cor(img_pil, roi=(350, 300, 1400, 750)):
     """
     Analisa a imagem (screenshot PIL) em busca de ícones de popup (Vermelho, Azul, Amarelo)
-    na região delimitada do retângulo de avisos do ERP: p1=(493,436) até p4=(1319,600).
+    na região delimitada do retângulo de aviso do ERP (por padrão: X: 350 a 1400, Y: 300 a 750).
     Retorna (cor_detectada, quantidade_pixels) ou (None, 0).
     """
     if not NUMPY_DISPONIVEL:
@@ -312,11 +312,11 @@ def detectar_popup_por_cor(img_pil):
 
     w_total, h_total = img_pil.size
     
-    # Define Região de Interesse (ROI) - Caixas de aviso/diálogo do ERP (p1: 493,436 -> p4: 1319,600)
-    x_start = min(493, w_total - 1)
-    x_end = min(1319, w_total)
-    y_start = min(436, h_total - 1)
-    y_end = min(600, h_total)
+    x1, y1, x2, y2 = roi
+    x_start = max(0, min(x1, w_total - 1))
+    x_end = max(x_start + 1, min(x2, w_total))
+    y_start = max(0, min(y1, h_total - 1))
+    y_end = max(y_start + 1, min(y2, h_total))
     
     img_roi = img_pil.crop((x_start, y_start, x_end, y_end))
     arr = np.array(img_roi)
@@ -325,14 +325,14 @@ def detectar_popup_por_cor(img_pil):
     g = arr[:, :, 1].astype(int)
     b = arr[:, :, 2].astype(int)
     
-    # 1. MÁSCARA VERMELHA (Erro / Stop / Conexão Encerrada / "É necessário informar Nº Título")
-    red_mask = (r >= 150) & (g <= 90) & (b <= 90) & ((r - np.maximum(g, b)) >= 50)
+    # 1. MÁSCARA VERMELHA (Erro / Stop / Conexão Encerrada / "É necessário informar Cliente")
+    red_mask = (r >= 165) & (g <= 75) & (b <= 75) & ((r - np.maximum(g, b)) >= 75)
     
-    # 2. MÁSCARA AZUL (Aviso / Informação / "Registro não existe. Selecione outro")
-    blue_mask = (b >= 140) & (r <= 95) & (g <= 170) & ((b - r) >= 45)
+    # 2. MÁSCARA AZUL (Aviso / Informação de diálogo do ERP)
+    blue_mask = (b >= 160) & (r <= 70) & (g <= 120) & ((b - r) >= 60)
     
     # 3. MÁSCARA AMARELA (Alerta / Warning / Atenção)
-    yellow_mask = (r >= 170) & (g >= 140) & (b <= 95) & ((np.minimum(r, g) - b) >= 60)
+    yellow_mask = (r >= 170) & (g >= 140) & (b <= 80) & ((np.minimum(r, g) - b) >= 70)
     
     red_count = int(np.sum(red_mask))
     blue_count = int(np.sum(blue_mask))
@@ -349,32 +349,78 @@ def detectar_popup_por_cor(img_pil):
         
     return None, 0
 
-def verificar_popup_inesperado():
+def verificar_presenca_cliente_grid(center_x=60, center_y=240, largura=80, altura=45, salvar_print=False):
+    """
+    Verifica se existem pixels pretos/escuros na região da grade do cliente (X: 60, Y: 240).
+    Região: Retângulo de 'largura' x 'altura' pixels ao redor de (center_x, center_y).
+    Se NÃO houver pixels pretos (dark_count == 0), significa que o cliente NÃO EXISTE na busca do ERP.
+    """
+    if not NUMPY_DISPONIVEL:
+        return True, 0
+
+    img_pil = pyautogui.screenshot()
+    w_total, h_total = img_pil.size
+
+    half_w = largura // 2
+    half_h = altura // 2
+    x1 = max(0, center_x - half_w)
+    x2 = min(w_total, center_x + half_w)
+    y1 = max(0, center_y - half_h)
+    y2 = min(h_total, center_y + half_h)
+
+    img_roi = img_pil.crop((x1, y1, x2, y2))
+    
+    # Salva o print da região da grade (desativado por padrão conforme solicitação)
+    if salvar_print:
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:19]
+            caminho_print = OUTPUT_DIR / f"check_grid_cliente_{timestamp}.png"
+            img_roi.save(caminho_print)
+            log(f"  [Print Grid Cliente] Retângulo {largura}x{altura}px ({x1}..{x2}, {y1}..{y2}) salvo em: {caminho_print.name}")
+        except Exception as e:
+            pass
+
+    arr = np.array(img_roi)
+    r = arr[:, :, 0].astype(int)
+    g = arr[:, :, 1].astype(int)
+    b = arr[:, :, 2].astype(int)
+
+    # Máscara para pixels pretos/escuros (texto da grade de resultados)
+    dark_mask = (r <= 80) & (g <= 80) & (b <= 80)
+    dark_count = int(np.sum(dark_mask))
+
+    # Retorna (True, dark_count) se encontrou pixels pretos; (False, 0) se a grade está vazia
+    return (dark_count > 0), dark_count
+
+
+
+def verificar_popup_inesperado(roi=(800, 430, 1100, 630)):
     """
     Captura a tela e verifica se apareceu uma caixa de aviso / popup inesperado
-    com ícone Vermelho, Azul ou Amarelo na região do retângulo (493, 436, 1319, 600).
+    com ícone Vermelho, Azul ou Amarelo na região do retângulo (X: 800 a 1100, Y: 430 a 630).
     Caso detectado, salva a imagem APENAS da área do retângulo de erro e interrompe a automação.
     """
     try:
         img_screenshot = pyautogui.screenshot()
-        cor_detectada, num_pixels = detectar_popup_por_cor(img_screenshot)
+        cor_detectada, num_pixels = detectar_popup_por_cor(img_screenshot, roi=roi)
         if cor_detectada:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             caminho_imagem_erro = OUTPUT_DIR / f"erro_popup_{timestamp}.png"
             
-            # Recorta apenas a área do retângulo (p1=493,436 a p4=1319,600)
+            # Recorta apenas a área do retângulo (X: 800 a 1100, Y: 430 a 630)
+            x1, y1, x2, y2 = roi
             w_total, h_total = img_screenshot.size
-            x_start = min(493, w_total - 1)
-            x_end = min(1319, w_total)
-            y_start = min(436, h_total - 1)
-            y_end = min(600, h_total)
+            x_start = max(0, min(x1, w_total - 1))
+            x_end = max(x_start + 1, min(x2, w_total))
+            y_start = max(0, min(y1, h_total - 1))
+            y_end = max(y_start + 1, min(y2, h_total))
             
             img_retangulo = img_screenshot.crop((x_start, y_start, x_end, y_end))
             img_retangulo.save(caminho_imagem_erro)
             
             mensagem = (
                 f"Popup de aviso inesperado detectado na tela! "
-                f"Ícone: {cor_detectada} ({num_pixels} pixels). "
+                f"Ícone: {cor_detectada} ({num_pixels} pixels na região {roi}). "
                 f"Imagem salva em: {caminho_imagem_erro.name}"
             )
             log(f"🚨 [POPUP INESPERADO DETECTADO] {mensagem}", "ERRO")
@@ -579,14 +625,14 @@ def preencher_ate_data_entrada(titulo):
 
     # Alt+A para ativar/focar o campo "Valor" da pesquisa
     verificar_failsafe()
-    nome_cliente = str(titulo.get("cliente", "")).strip()
-    print(f"    ➜ [7/19] Alt+A → Digitando nome do cliente: {nome_cliente}")
+    cpf_cnpj = str(titulo.get("cpf_cnpj", "") or titulo.get("cliente", "")).strip()
+    print(f"    ➜ [7/19] Alt+A → Digitando CPF/CNPJ do cliente: {cpf_cnpj}")
     pyautogui.hotkey("alt", "a")
     aguardar_com_failsafe(0.5)
 
-    # Digita o nome do cliente via clipboard (suporta caracteres especiais: ç, ã, etc.)
+    # Digita o CPF/CNPJ do cliente via clipboard (suporta caracteres especiais / pontuações)
     verificar_failsafe()
-    digitar_texto(nome_cliente)
+    digitar_texto(cpf_cnpj)
     aguardar_com_failsafe(0.3)
 
     # Clica no botão filtrar_cliente para iniciar a pesquisa
@@ -595,17 +641,32 @@ def preencher_ate_data_entrada(titulo):
     clicar_botao("filtrar_cliente")
     aguardar_com_failsafe(DELAYS.get("abrir_janela", 2.0))
 
-    # Verifica se a pesquisa retornou mais de 1 cliente com o mesmo nome
-    if verificar_cliente_duplicado(nome_cliente):
-        log(f"  ➜ [CLIENTE DUPLICADO] Múltiplos clientes encontrados para '{nome_cliente}'. Pulando este título!", "AVISO")
+    # Validação Prévia: Se NÃO houver pixels pretos no retângulo (40x20px) em (X: 60, Y: 240), o cliente NÃO EXISTE!
+    verificar_failsafe()
+    cliente_grid_existe, dark_px_count = verificar_presenca_cliente_grid(center_x=60, center_y=240, largura=40, altura=20)
+    if not cliente_grid_existe:
+        log(f"  ➜ [CLIENTE NÃO ENCONTRADO] Sem pixels pretos na grade (0 px na região X:40..80, Y:230..250). Cliente não existe para CPF/CNPJ: {cpf_cnpj}.", "AVISO")
+        verificar_failsafe()
+        log("  [Automação] Pressionando ESC (2x) para fechar a pesquisa e pular para o próximo título...")
+        for _ in range(2):
+            pyautogui.press("escape")
+            aguardar_com_failsafe(0.3)
+        aguardar_com_failsafe(1.0)
+        return "CLIENTE_NAO_ENCONTRADO"
+
+    # Verifica se a pesquisa retornou mais de 1 cliente com o mesmo CPF/CNPJ
+    if verificar_cliente_duplicado(cpf_cnpj):
+        log(f"  ➜ [CLIENTE DUPLICADO] Múltiplos clientes encontrados para o CPF/CNPJ '{cpf_cnpj}'. Pulando este título!", "AVISO")
         verificar_failsafe()
         log("  [Automação] Clicando em cancelar_filtro_cliente...")
         clicar_botao("cancelar_filtro_cliente")
-        aguardar_com_failsafe(1.0)
+        aguardar_com_failsafe(1.5)
         log("  [Automação] Clicando em cancelar_titulo...")
         clicar_botao("cancelar_titulo")
+        aguardar_com_failsafe(1.5)
+        log("  [Automação] Pressionando Enter para confirmar cancelamento do título...")
         pyautogui.press("enter")
-        aguardar_com_failsafe(1.0)
+        aguardar_com_failsafe(1.5)
         return False  # Retorna False indicando que o título foi pulado por duplicidade
 
     # Duplo clique no botão confirmar_cliente para selecionar o primeiro resultado
@@ -675,7 +736,7 @@ def preencher_ate_data_entrada(titulo):
 
     # Campo Data de Vencimento (formato DDMMYYYY)
     verificar_failsafe()
-    data_vencimento_br = formatar_data_br(titulo.get("data_vencimento"), com_barras=False, inverter_dia_mes=True)
+    data_vencimento_br = formatar_data_br(titulo.get("data_vencimento"), com_barras=False)
     print(f"    ➜ [17/19] Digitando Data de Vencimento: {data_vencimento_br}")
     pyautogui.write(data_vencimento_br, interval=0.03)
     aguardar_com_failsafe(delay_campo)
@@ -697,9 +758,9 @@ def preencher_ate_data_entrada(titulo):
         pyautogui.press("tab")
         aguardar_com_failsafe(0.1)
 
-    # Campo Data Provável (utiliza a mesma data de vencimento, com o parâmetro inverter_dia_mes=True)
+    # Campo Data Provável (utiliza a mesma data de vencimento)
     verificar_failsafe()
-    data_provavel_br = formatar_data_br(titulo.get("data_vencimento"), com_barras=False, inverter_dia_mes=True)
+    data_provavel_br = formatar_data_br(titulo.get("data_vencimento"), com_barras=False)
     print(f"    ➜ [20/20] Digitando Data Provável: {data_provavel_br}")
     pyautogui.write(data_provavel_br, interval=0.03)
     aguardar_com_failsafe(delay_campo)
@@ -790,12 +851,17 @@ def executar_automacao_completa(modo_teste=False):
             # Preencher campos do formulário F301TCR
             sucesso = preencher_ate_data_entrada(titulo)
 
-            if not sucesso:
-                # O título foi pulado por duplicidade de cliente
+            if sucesso is not True:
                 salvar_progresso(index, num_titulo)
-                registrar_titulo_planilha(titulo, index, status="PULADO - CLIENTE DUPLICADO")
-                registrar_titulo_pulado(titulo, index, motivo="Cliente Duplicado")
-                log(f"  ✔ Título {num_titulo} registrado como PULADO nas planilhas com sucesso.", "AVISO")
+                if sucesso == "CLIENTE_NAO_ENCONTRADO":
+                    registrar_titulo_planilha(titulo, index, status="PULADO - CLIENTE NÃO ENCONTRADO")
+                    registrar_titulo_pulado(titulo, index, motivo="Cliente não encontrado")
+                    log(f"  ✔ Título {num_titulo} registrado como PULADO (Motivo: Cliente não encontrado).", "AVISO")
+                else:
+                    registrar_titulo_planilha(titulo, index, status="PULADO - CLIENTE DUPLICADO")
+                    registrar_titulo_pulado(titulo, index, motivo="Cliente Duplicado")
+                    log(f"  ✔ Título {num_titulo} registrado como PULADO (Motivo: Cliente Duplicado).", "AVISO")
+
                 aguardar_com_failsafe(DELAYS.get("entre_titulos", 1.5))
                 continue
 
